@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f2a6b4; 
+            --bg-pattern: #e895a5;
+            --accent: #d90429;
+            --envelope-color: #f5f5dc;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            background-image: repeating-conic-gradient(var(--bg-pattern) 0% 25%, transparent 0% 50%);
+            background-size: 60px 60px;
+            font-family: 'Press Start 2P', cursive;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #ui-layer { text-align: center; z-index: 10; transition: opacity 0.8s; }
+        
+        h1 { 
+            color: white; 
+            font-size: 1.1rem; 
+            text-shadow: 3px 3px var(--accent); 
+            margin-bottom: 40px; 
+            line-height: 1.8;
+            padding: 0 20px;
+        }
+        
+        .btn {
+            background: var(--accent); border: 4px solid #fff; color: white;
+            padding: 15px 25px; cursor: pointer; font-family: 'Press Start 2P';
+            box-shadow: 5px 5px 0px #800e13; margin: 10px;
+            font-size: 0.9rem;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+
+        #envelope-wrapper {
+            position: absolute; z-index: 20; display: none;
+            cursor: pointer; text-align: center;
+        }
+
+        .envelope {
+            width: 100px; height: 65px; background: var(--envelope-color);
+            border: 4px solid #4a4a4a; position: relative;
+            margin: 0 auto;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .envelope::after {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 50px solid transparent; border-right: 46px solid transparent;
+            border-top: 35px solid #e3e3c7;
+        }
+
+        #letter-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 85%; max-width: 450px; background: #fffdf5;
+            border: 6px solid var(--accent); padding: 25px;
+            z-index: 30; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            line-height: 1.6; color: #222; font-size: 0.65rem; text-align: left;
+            box-shadow: 20px 20px 0px rgba(0,0,0,0.1);
+        }
+        #letter-modal.open { transform: translate(-50%, -50%) scale(1); }
+        
+        .ps { margin-top: 20px; color: #666; font-size: 0.55rem; border-top: 2px dashed #ccc; padding-top: 15px; }
+        .close-btn { margin-top: 25px; color: var(--accent); cursor: pointer; display: block; text-align: center; font-size: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <h1>WILL YOU BE<br>MY VALENTINE?</h1>
+        <button class="btn" onclick="startSequence()">YES</button>
+        <button class="btn" onclick="startSequence()">YES</button>
+    </div>
+
+    <canvas id="spiroCanvas"></canvas>
+
+    <div id="envelope-wrapper" onclick="openLetter()">
+        <div class="envelope"></div>
+        <p style="font-size: 8px; margin-top: 15px; color: white; text-shadow: 2px 2px #000;">YOU HAVE A MESSAGE</p>
+    </div>
+
+    <div id="letter-modal">
+        <p>I love you baby, im really glad to have you and i cannot wait to see you again... hopefully we meet soon, you're my everything. <br><br> &lt;3 made with lots of love your sweetheart - AR (mwah)</p>
+        <p class="ps">ps: im really sorry i cant make it tmr</p>
+        <span class="close-btn" onclick="location.reload()">[ CLOSE ]</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('spiroCanvas');
+        const ctx = canvas.getContext('2d');
+        let t = 0;
+        let isDrawing = false;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function startSequence() {
+            document.getElementById('ui-layer').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('ui-layer').style.display = 'none';
+                isDrawing = true;
+                draw();
+                // 7 seconds of gorgeous spirograph drawing
+                setTimeout(showEnvelope, 7000);
+            }, 800);
+        }
+
+        function draw() {
+            if(!isDrawing) return;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = Math.min(canvas.width, canvas.height) / 45;
+
+            // Retracing logic: drawing 8 steps per frame for speed
+            for(let i = 0; i < 8; i++) { 
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                
+                const shiftX = Math.sin(t * 0.15) * 4;
+                const shiftY = Math.cos(t * 0.15) * 4;
+
+                if (t === 0) ctx.moveTo(centerX + x * scale, centerY + y * scale);
+                
+                ctx.lineTo(centerX + (x + shiftX) * scale, centerY + (y + shiftY) * scale);
+                ctx.strokeStyle = '#d90429';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+                
+                t += 0.015; 
+            }
+            requestAnimationFrame(draw);
+        }
+
+        function showEnvelope() {
+            const env = document.getElementById('envelope-wrapper');
+            env.style.display = 'block';
+            env.style.opacity = '0';
+            setTimeout(() => {
+                env.style.transition = "opacity 1.5s";
+                env.style.opacity = '1';
+            }, 100);
+        }
+
+        function openLetter() {
+            document.getElementById('letter-modal').classList.add('open');
+            document.getElementById('envelope-wrapper').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('envelope-wrapper').style.display = 'none';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
